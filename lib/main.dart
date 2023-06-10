@@ -21,8 +21,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// ...
-
 class AnaSayfa extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -41,26 +39,81 @@ class AnaSayfa extends StatelessWidget {
   }
 }
 
+class KovanEkleSayfasi extends StatefulWidget {
+  @override
+  _KovanEkleSayfasiState createState() => _KovanEkleSayfasiState();
+}
 
-class KovanEkleSayfasi extends StatelessWidget {
+class _KovanEkleSayfasiState extends State<KovanEkleSayfasi> {
+  String kovanAdi = '';
+  String kovanLokasyonu = '';
+  int kovanKatSayisi = 0;
+  String anaAri = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Kovan Ekle'),
       ),
-      body: Container(
+      body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Kovan Numarası'),
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  kovanAdi = value;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Kovan Adı',
+              ),
             ),
-            
-            // Diğer kovan özellikleri için metin alanları veya açılır listeler ekleyebilirsiniz.
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  kovanLokasyonu = value;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Kovan Lokasyonu',
+              ),
+            ),
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  kovanKatSayisi = int.tryParse(value) ?? 0;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Kovan Kat Sayısı',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  anaAri = value;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Ana Arı',
+              ),
+            ),
+            SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                // Kovan ekleme işlemini gerçekleştirecek kodu buraya yazın.
+                // Kovanı kaydetmek için gerekli işlemler
+                Kovan yeniKovan = Kovan(
+                  kovanAdi: kovanAdi,
+                  kovanLokasyonu: kovanLokasyonu,
+                  kovanKatSayisi: kovanKatSayisi,
+                  anaAri: anaAri,
+                );
+                // TODO: Firebase veritabanına kovanı kaydet
+
+                Navigator.pop(context);
               },
               child: Text('Kovan Ekle'),
             ),
@@ -71,34 +124,178 @@ class KovanEkleSayfasi extends StatelessWidget {
   }
 }
 
-class KovanListeleSayfasi extends StatelessWidget {
+class KovanListeleSayfasi extends StatefulWidget {
+  @override
+  _KovanListeleSayfasiState createState() => _KovanListeleSayfasiState();
+}
+
+class _KovanListeleSayfasiState extends State<KovanListeleSayfasi> {
+  List<Kovan> kovanlar = [];
+
+  @override
+  void initState() {
+    super.initState();
+    kovanlar = [
+      Kovan(
+        kovanAdi: 'Kovan 1',
+        kovanLokasyonu: 'Lokasyon 1',
+        kovanKatSayisi: 2,
+        anaAri: 'Ana Arı 1',
+      ),
+      Kovan(
+        kovanAdi: 'Kovan 2',
+        kovanLokasyonu: 'Lokasyon 2',
+        kovanKatSayisi: 3,
+        anaAri: 'Ana Arı 2',
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Kovanları veritabanından alınacak şekilde güncelleyin veya hardcode olarak örnek kovanları kullanın.
-    List<Kovan> kovanlar = [
-      Kovan('Kovan 1', 'Lokasyon 1'),
-      Kovan('Kovan 2', 'Lokasyon 2'),
-      // Diğer kovanları da listeye ekleyin.
-    ];
-
-    return ListView.builder(
-      itemCount: kovanlar.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(kovanlar[index].kovanNumarasi),
-          subtitle: Text(kovanlar[index].lokasyon),
-          onTap: () {
-            // Kovan detay sayfasına yönlendirmek için gerekli kodu buraya yazın.
-          },
-        );
-      },
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Kovan Listele'),
+      ),
+      body: ListView.builder(
+        itemCount: kovanlar.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => KovanDetaySayfasi(kovan: kovanlar[index]),
+                ),
+              );
+            },
+            child: Card(
+              child: ListTile(
+                title: Text(kovanlar[index].kovanAdi),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
-class Kovan {
-  final String kovanNumarasi;
-  final String lokasyon;
+class KovanDetaySayfasi extends StatefulWidget {
+  final Kovan kovan;
 
-  Kovan(this.kovanNumarasi, this.lokasyon);
+  KovanDetaySayfasi({required this.kovan});
+
+  @override
+  _KovanDetaySayfasiState createState() => _KovanDetaySayfasiState();
+}
+
+class _KovanDetaySayfasiState extends State<KovanDetaySayfasi> {
+  late TextEditingController kovanAdiController;
+  late TextEditingController kovanLokasyonuController;
+  late TextEditingController kovanKatSayisiController;
+  late TextEditingController anaAriController;
+
+  @override
+  void initState() {
+    super.initState();
+    kovanAdiController = TextEditingController(text: widget.kovan.kovanAdi);
+    kovanLokasyonuController =
+        TextEditingController(text: widget.kovan.kovanLokasyonu);
+    kovanKatSayisiController =
+        TextEditingController(text: widget.kovan.kovanKatSayisi.toString());
+    anaAriController = TextEditingController(text: widget.kovan.anaAri);
+  }
+
+  @override
+  void dispose() {
+    kovanAdiController.dispose();
+    kovanLokasyonuController.dispose();
+    kovanKatSayisiController.dispose();
+    anaAriController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.kovan.kovanAdi),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: kovanAdiController,
+              onChanged: (value) {
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                labelText: 'Kovan Adı',
+              ),
+            ),
+            TextField(
+              controller: kovanLokasyonuController,
+              onChanged: (value) {
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                labelText: 'Kovan Lokasyonu',
+              ),
+            ),
+            TextField(
+              controller: kovanKatSayisiController,
+              onChanged: (value) {
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                labelText: 'Kovan Kat Sayısı',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: anaAriController,
+              onChanged: (value) {
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                labelText: 'Ana Arı',
+              ),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                // Kovanı güncellemek için gerekli işlemler
+                widget.kovan.kovanAdi = kovanAdiController.text;
+                widget.kovan.kovanLokasyonu = kovanLokasyonuController.text;
+                widget.kovan.kovanKatSayisi =
+                    int.tryParse(kovanKatSayisiController.text) ?? 0;
+                widget.kovan.anaAri = anaAriController.text;
+                // TODO: Firebase veritabanında kovanı güncelle
+
+                Navigator.pop(context);
+              },
+              child: Text('Güncelle'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class Kovan {
+  String kovanAdi;
+  String kovanLokasyonu;
+  int kovanKatSayisi;
+  String anaAri;
+
+  Kovan({
+    required this.kovanAdi,
+    required this.kovanLokasyonu,
+    required this.kovanKatSayisi,
+    required this.anaAri,
+  });
 }
