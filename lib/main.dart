@@ -8,6 +8,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner:
+          false, // Debug işaretini kaldırmak için eklenen satır
       title: 'Arıcılık Takip Sistemi',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -111,9 +113,7 @@ class _KovanEkleSayfasiState extends State<KovanEkleSayfasi> {
                   kovanKatSayisi: kovanKatSayisi,
                   anaAri: anaAri,
                 );
-                // TODO: Firebase veritabanına kovanı kaydet
-
-                Navigator.pop(context);
+                Navigator.pop(context, yeniKovan);
               },
               child: Text('Kovan Ekle'),
             ),
@@ -165,9 +165,16 @@ class _KovanListeleSayfasiState extends State<KovanListeleSayfasi> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => KovanDetaySayfasi(kovan: kovanlar[index]),
+                  builder: (context) =>
+                      KovanDetaySayfasi(kovan: kovanlar[index]),
                 ),
-              );
+              ).then((value) {
+                if (value != null) {
+                  setState(() {
+                    kovanlar[index] = value;
+                  });
+                }
+              });
             },
             child: Card(
               child: ListTile(
@@ -176,6 +183,21 @@ class _KovanListeleSayfasiState extends State<KovanListeleSayfasi> {
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => KovanEkleSayfasi()),
+          ).then((value) {
+            if (value != null) {
+              setState(() {
+                kovanlar.add(value); // Yeni kovanı "kovanlar" listesine ekleyin
+              });
+            }
+          });
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
@@ -267,16 +289,16 @@ class _KovanDetaySayfasiState extends State<KovanDetaySayfasi> {
             ElevatedButton(
               onPressed: () {
                 // Kovanı güncellemek için gerekli işlemler
-                widget.kovan.kovanAdi = kovanAdiController.text;
-                widget.kovan.kovanLokasyonu = kovanLokasyonuController.text;
-                widget.kovan.kovanKatSayisi =
-                    int.tryParse(kovanKatSayisiController.text) ?? 0;
-                widget.kovan.anaAri = anaAriController.text;
-                // TODO: Firebase veritabanında kovanı güncelle
-
-                Navigator.pop(context);
+                Kovan updatedKovan = Kovan(
+                  kovanAdi: kovanAdiController.text,
+                  kovanLokasyonu: kovanLokasyonuController.text,
+                  kovanKatSayisi:
+                      int.tryParse(kovanKatSayisiController.text) ?? 0,
+                  anaAri: anaAriController.text,
+                );
+                Navigator.pop(context, updatedKovan);
               },
-              child: Text('Güncelle'),
+              child: Text('Kaydet'),
             ),
           ],
         ),
@@ -285,12 +307,11 @@ class _KovanDetaySayfasiState extends State<KovanDetaySayfasi> {
   }
 }
 
-
 class Kovan {
-  String kovanAdi;
-  String kovanLokasyonu;
-  int kovanKatSayisi;
-  String anaAri;
+  final String kovanAdi;
+  final String kovanLokasyonu;
+  final int kovanKatSayisi;
+  final String anaAri;
 
   Kovan({
     required this.kovanAdi,
